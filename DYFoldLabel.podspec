@@ -7,7 +7,7 @@ s.version      = "1.0.0"
 s.summary      = "设置一段显示不完整文字省略号后的折叠按钮"
 
 s.description  = <<-DESC
-设置一段显示不完整文字省略号后的折叠按钮。
+设置一段显示不完整文字省略号后的折叠按钮,可自定义折叠文字样式。
 DESC
 
 s.homepage     = "https://github.com/duyi56432/DYFoldLabel"
