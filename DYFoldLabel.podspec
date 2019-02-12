@@ -1,10 +1,10 @@
 
-Pod::Spec.new do |spec|
+Pod::Spec.new do |s|
 
 
 s.name         = "DYFoldLabel"
 s.version      = "1.0.0"
-s.summary      = "设置一段显示不完整文字省略号后的折叠按钮。"
+s.summary      = "设置一段显示不完整文字省略号后的折叠按钮"
 
 s.description  = <<-DESC
 设置一段显示不完整文字省略号后的折叠按钮。
@@ -21,6 +21,4 @@ s.source       = { :git => "https://github.com/duyi56432/DYFoldLabel.git", :tag 
 
 
 s.source_files  = "DYFoldLabel/**/*.{h,m}"
-
-
 end
