@@ -3,7 +3,7 @@ Pod::Spec.new do |s|
 
 
 s.name         = "DYFoldLabel"
-s.version      = "1.0.1"
+s.version      = "1.0.2"
 s.summary      = "设置一段显示不完整文字省略号后的折叠按钮"
 
 s.description  = <<-DESC
