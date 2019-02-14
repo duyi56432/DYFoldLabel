@@ -27,6 +27,12 @@ static NSString *kDisplay = @"KisDisplay";
         return;
     }
     
+    NSAttributedString *foldAttributeText = objc_getAssociatedObject(self, "foldAttributeText");
+    if (foldAttributeText && foldAttributeText.length > 0) {
+        self.attributedText = foldAttributeText;
+        return;
+    }
+    
     NSMutableAttributedString *attributeText = [[NSMutableAttributedString alloc] initWithString:self.text attributes:@{NSFontAttributeName:self.font}];
     //数据记录
     [self setDy_attributedText:attributeText];
@@ -47,19 +53,20 @@ static NSString *kDisplay = @"KisDisplay";
     CTLineRef line = CFArrayGetValueAtIndex(lines, endLineIndex);
     CFRange lineRange = CTLineGetStringRange(line);
     NSRange trimRange = NSMakeRange(0, lineRange.location + lineRange.length);
-    //获取当前能显示文字
-    attributeText = [[attributeText attributedSubstringFromRange:trimRange] mutableCopy];
-    //获取需要替换的文字长度
-    NSInteger length = [self subLenthWithString:attributeText lineRange:trimRange text:foldText textFont:font];
-    //省略号前需要添加的文字
-    attributeText = [[attributeText attributedSubstringFromRange:NSMakeRange(0, lineRange.location + lineRange.length - length)] mutableCopy];
-    
-    [attributeText appendAttributedString:[[NSAttributedString alloc] initWithString:@"… "]];
-    [attributeText appendAttributedString:foldAttText];
-    
-    self.attributedText = attributeText;
-    objc_setAssociatedObject(self, "foldAttributeText", attributeText, OBJC_ASSOCIATION_RETAIN);
-
+    if (trimRange.length < self.text.length) {
+        //获取当前能显示文字
+        attributeText = [[attributeText attributedSubstringFromRange:trimRange] mutableCopy];
+        //获取需要替换的文字长度
+        NSInteger length = [self subLenthWithString:attributeText lineRange:trimRange text:foldText textFont:font];
+        //省略号前需要添加的文字
+        attributeText = [[attributeText attributedSubstringFromRange:NSMakeRange(0, lineRange.location + lineRange.length - length)] mutableCopy];
+        
+        [attributeText appendAttributedString:[[NSAttributedString alloc] initWithString:@"… "]];
+        [attributeText appendAttributedString:foldAttText];
+        
+        self.attributedText = attributeText;
+        objc_setAssociatedObject(self, "foldAttributeText", attributeText, OBJC_ASSOCIATION_RETAIN);
+    }
     CTFrameRef kframeRef = [self framesetterRefWithAttString:attributeText];
     objc_setAssociatedObject(self, "frameRef", (__bridge id _Nullable)(kframeRef), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     if(frameRef) {
@@ -107,7 +114,7 @@ static NSString *kDisplay = @"KisDisplay";
     NSInteger lineIndex = 0,index = 0;
     NSInteger number = self.numberOfLines - 1;
     CGFloat totalLineHeight = 0;
-    while (totalLineHeight < (lineHeight + fontDiff) && lineCount >= index) {
+    while (totalLineHeight < (lineHeight + fontDiff) && lineCount > index) {
         if (totalLineHeight < (lineHeight + leading)) {
             index++;
         }
@@ -144,6 +151,12 @@ static NSString *kDisplay = @"KisDisplay";
     //获取最后行
     CFIndex endLineIndex = [objc_getAssociatedObject(self, "endLineIndex") integerValue];
     CFArrayRef lines = CTFrameGetLines(_frame);
+    CTLineRef line = CFArrayGetValueAtIndex(lines, endLineIndex);
+    CFRange lineRange = CTLineGetStringRange(line);
+    NSRange trimRange = NSMakeRange(0, lineRange.location + lineRange.length);
+    if (trimRange.length == self.dy_text.length) {
+        return;
+    }
     
     //获取行上行、下行、间距
     CGFloat ascent = 0;
