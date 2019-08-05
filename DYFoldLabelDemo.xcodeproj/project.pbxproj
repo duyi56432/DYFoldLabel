@@ -25,7 +25,11 @@
 		0FE15CEA22114BBD0029CC21 /* NSLayoutConstraint+MASDebugAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 0FE15CDD22114BBD0029CC21 /* NSLayoutConstraint+MASDebugAdditions.m */; };
 		0FE15CEB22114BBD0029CC21 /* View+MASAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 0FE15CDF22114BBD0029CC21 /* View+MASAdditions.m */; };
 		0FE15CEC22114BBD0029CC21 /* ViewController+MASAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 0FE15CE222114BBD0029CC21 /* ViewController+MASAdditions.m */; };
-		0FE15CF422114C110029CC21 /* UILabel+DYFoldLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 0FE15CF322114C110029CC21 /* UILabel+DYFoldLabel.m */; };
+		847C6FAD22F16E5E00EA8304 /* DemoModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 847C6FAC22F16E5E00EA8304 /* DemoModel.m */; };
+		847C6FAE22F1717700EA8304 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0FE15C9B22114B650029CC21 /* ViewController.m */; };
+		847C6FB122F292AA00EA8304 /* DemoCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 847C6FB022F292AA00EA8304 /* DemoCell.m */; };
+		847C6FB722F2BD2800EA8304 /* DYFoldLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 847C6FB622F2BD2800EA8304 /* DYFoldLabel.m */; };
+		847C6FBA22F2CCA200EA8304 /* DYLabelModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 847C6FB922F2CCA200EA8304 /* DYLabelModel.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -87,8 +91,14 @@
 		0FE15CE022114BBD0029CC21 /* View+MASShorthandAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "View+MASShorthandAdditions.h"; sourceTree = "<group>"; };
 		0FE15CE122114BBD0029CC21 /* ViewController+MASAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ViewController+MASAdditions.h"; sourceTree = "<group>"; };
 		0FE15CE222114BBD0029CC21 /* ViewController+MASAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "ViewController+MASAdditions.m"; sourceTree = "<group>"; };
-		0FE15CF222114C110029CC21 /* UILabel+DYFoldLabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UILabel+DYFoldLabel.h"; sourceTree = "<group>"; };
-		0FE15CF322114C110029CC21 /* UILabel+DYFoldLabel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UILabel+DYFoldLabel.m"; sourceTree = "<group>"; };
+		847C6FAB22F16E5E00EA8304 /* DemoModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DemoModel.h; sourceTree = "<group>"; };
+		847C6FAC22F16E5E00EA8304 /* DemoModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DemoModel.m; sourceTree = "<group>"; };
+		847C6FAF22F292AA00EA8304 /* DemoCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DemoCell.h; sourceTree = "<group>"; };
+		847C6FB022F292AA00EA8304 /* DemoCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DemoCell.m; sourceTree = "<group>"; };
+		847C6FB522F2BD2800EA8304 /* DYFoldLabel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DYFoldLabel.h; sourceTree = "<group>"; };
+		847C6FB622F2BD2800EA8304 /* DYFoldLabel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DYFoldLabel.m; sourceTree = "<group>"; };
+		847C6FB822F2CCA200EA8304 /* DYLabelModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DYLabelModel.h; sourceTree = "<group>"; };
+		847C6FB922F2CCA200EA8304 /* DYLabelModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DYLabelModel.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -150,6 +160,10 @@
 				0FE15CA222114B7B0029CC21 /* LaunchScreen.storyboard */,
 				0FE15CA522114B7B0029CC21 /* Info.plist */,
 				0FE15CA622114B7B0029CC21 /* main.m */,
+				847C6FAB22F16E5E00EA8304 /* DemoModel.h */,
+				847C6FAC22F16E5E00EA8304 /* DemoModel.m */,
+				847C6FAF22F292AA00EA8304 /* DemoCell.h */,
+				847C6FB022F292AA00EA8304 /* DemoCell.m */,
 			);
 			path = DYFoldLabelDemo;
 			sourceTree = "<group>";
@@ -207,8 +221,10 @@
 		0FE15CF122114C110029CC21 /* DYFoldLabel */ = {
 			isa = PBXGroup;
 			children = (
-				0FE15CF222114C110029CC21 /* UILabel+DYFoldLabel.h */,
-				0FE15CF322114C110029CC21 /* UILabel+DYFoldLabel.m */,
+				847C6FB822F2CCA200EA8304 /* DYLabelModel.h */,
+				847C6FB922F2CCA200EA8304 /* DYLabelModel.m */,
+				847C6FB522F2BD2800EA8304 /* DYFoldLabel.h */,
+				847C6FB622F2BD2800EA8304 /* DYFoldLabel.m */,
 			);
 			path = DYFoldLabel;
 			sourceTree = SOURCE_ROOT;
@@ -346,13 +362,16 @@
 				0FE15CEA22114BBD0029CC21 /* NSLayoutConstraint+MASDebugAdditions.m in Sources */,
 				0FE15CE822114BBD0029CC21 /* MASViewConstraint.m in Sources */,
 				0FE15CE322114BBD0029CC21 /* MASCompositeConstraint.m in Sources */,
+				847C6FAD22F16E5E00EA8304 /* DemoModel.m in Sources */,
 				0FE15CE922114BBD0029CC21 /* NSArray+MASAdditions.m in Sources */,
 				0FE15C9C22114B650029CC21 /* ViewController.m in Sources */,
+				847C6FB722F2BD2800EA8304 /* DYFoldLabel.m in Sources */,
 				0FE15CA722114B7B0029CC21 /* main.m in Sources */,
 				0FE15CE622114BBD0029CC21 /* MASLayoutConstraint.m in Sources */,
 				0FE15C9922114B650029CC21 /* AppDelegate.m in Sources */,
 				0FE15CEC22114BBD0029CC21 /* ViewController+MASAdditions.m in Sources */,
-				0FE15CF422114C110029CC21 /* UILabel+DYFoldLabel.m in Sources */,
+				847C6FB122F292AA00EA8304 /* DemoCell.m in Sources */,
+				847C6FBA22F2CCA200EA8304 /* DYLabelModel.m in Sources */,
 				0FE15CEB22114BBD0029CC21 /* View+MASAdditions.m in Sources */,
 				0FE15CE722114BBD0029CC21 /* MASViewAttribute.m in Sources */,
 				0FE15CE422114BBD0029CC21 /* MASConstraint.m in Sources */,
@@ -372,6 +391,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				847C6FAE22F1717700EA8304 /* ViewController.m in Sources */,
 				0FE15CBC22114B7B0029CC21 /* DYFoldLabelDemoUITests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

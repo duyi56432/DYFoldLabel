@@ -1,55 +1,63 @@
 //
-//  UILabel+DYFoldLabel.m
-//  DYFoldLabel
+//  DYFoldLabel.m
+//  DYFoldLabelDemo
 //
-//  Created by 杜燚 on 2019/1/4.
+//  Created by admin on 2019/8/1.
 //  Copyright © 2019年 dayunwenchuang. All rights reserved.
 //
 
-#import "UILabel+DYFoldLabel.h"
+#import "DYFoldLabel.h"
 #import <CoreText/CoreText.h>
 #import <objc/message.h>
 #import <objc/runtime.h>
 
-static NSString *completeText = @"completeText";
-static NSString *completeAttText = @"completeAttText";
 static NSString *kDisplay = @"KisDisplay";
 
-@implementation UILabel (DYFoldLabel)
+@interface DYFoldLabel ()
 
-- (void)setFoldText:(NSString *)foldText
-           textFont:(UIFont *)font
-          textColor:(UIColor *)color
-         clickBlock:(DYFoldBtnClickBlock)block{
-   [self layoutIfNeeded];
+@end
+
+@implementation DYFoldLabel
+
+- (void)setFoldText:(NSString *)text
+         LabelWidth:(CGFloat)width
+                clickBlock:(DYFoldBtnClickBlock)block{
+    [self layoutIfNeeded];
     self.userInteractionEnabled = YES;
-    if (!self.text || self.text.length == 0) {
+    if (!text || text.length == 0) {
         return;
     }
     
-    NSAttributedString *foldAttributeText = objc_getAssociatedObject(self, "foldAttributeText");
-    if (foldAttributeText && foldAttributeText.length > 0) {
-        self.attributedText = foldAttributeText;
+    if (self.model.foldAttributeText && self.model.foldAttributeText.length > 0) {
+        [self foldLabel:self.model.isFolded];
         return;
     }
     
+    self.text = text;
     NSMutableAttributedString *attributeText = [[NSMutableAttributedString alloc] initWithString:self.text attributes:@{NSFontAttributeName:self.font}];
+    if (self.model.packUpText) {
+        NSAttributedString *packUpText = [[NSAttributedString alloc] initWithString:self.model.packUpText attributes:@{NSFontAttributeName:self.model.packUpTextFont,NSForegroundColorAttributeName:self.model.packUpTextColor}];
+        [attributeText appendAttributedString:packUpText];
+    }
+    
     //数据记录
-    [self setDy_attributedText:attributeText];
-    objc_setAssociatedObject(self, "foldText", foldText, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    objc_setAssociatedObject(self, "foldFont", font, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    self.model.dy_attributedText = attributeText;
+    self.model.dy_text = attributeText.string;
+    self.model.textFont = self.font;
+    self.model.numberOfLines = self.numberOfLines;
+    self.model.labelSize = CGSizeMake(width, self.bounds.size.height);
     objc_setAssociatedObject(self, "clickBlock", block, OBJC_ASSOCIATION_COPY_NONATOMIC);
-    self.isFolded = NO;
-    
-    NSAttributedString *foldAttText = [[NSAttributedString alloc] initWithString:foldText attributes:@{NSFontAttributeName:font,NSForegroundColorAttributeName:color}];
 
-    CTFrameRef frameRef = [self framesetterRefWithAttString:attributeText];
-    CFArrayRef lines = CTFrameGetLines(frameRef);
-    CFIndex cfindex = CFArrayGetCount(lines);
+    NSAttributedString *foldAttText = [[NSAttributedString alloc] initWithString:self.model.foldText attributes:@{NSFontAttributeName:self.model.foldFont,NSForegroundColorAttributeName:self.model.foldTextColor}];
     
+    CTFrameRef frameRef = [self framesetterRefWithAttString:attributeText size:CGSizeMake(width, self.bounds.size.height)];
+    
+    CFArrayRef lines = CTFrameGetLines(frameRef);
+    if (!lines || CFArrayGetCount(lines) == 0) return;
+    CFIndex cfindex = CFArrayGetCount(lines);
     //计算第几行结束,折叠文字字体大于文本字体会占用多行
-    CFIndex endLineIndex = [self lineReplaceWithLine:cfindex lines:lines fontDiff:font.pointSize - self.font.pointSize];
-    objc_setAssociatedObject(self, "endLineIndex", @(endLineIndex), OBJC_ASSOCIATION_ASSIGN);
+    CFIndex endLineIndex = [self lineReplaceWithLine:cfindex lines:lines fontDiff:self.model.foldFont.pointSize - self.font.pointSize];
+    self.model.endLineIndex = endLineIndex;
     CTLineRef line = CFArrayGetValueAtIndex(lines, endLineIndex);
     CFRange lineRange = CTLineGetStringRange(line);
     NSRange trimRange = NSMakeRange(0, lineRange.location + lineRange.length);
@@ -57,7 +65,7 @@ static NSString *kDisplay = @"KisDisplay";
         //获取当前能显示文字
         attributeText = [[attributeText attributedSubstringFromRange:trimRange] mutableCopy];
         //获取需要替换的文字长度
-        NSInteger length = [self subLenthWithString:attributeText lineRange:trimRange text:foldText textFont:font];
+        NSInteger length = [self subLenthWithString:attributeText lineRange:trimRange text:[NSString stringWithFormat:@"… %@",self.model.foldText] textFont:self.model.foldFont];
         //省略号前需要添加的文字
         attributeText = [[attributeText attributedSubstringFromRange:NSMakeRange(0, lineRange.location + lineRange.length - length)] mutableCopy];
         
@@ -65,35 +73,43 @@ static NSString *kDisplay = @"KisDisplay";
         [attributeText appendAttributedString:foldAttText];
         
         self.attributedText = attributeText;
-        objc_setAssociatedObject(self, "foldAttributeText", attributeText, OBJC_ASSOCIATION_RETAIN);
+        self.model.foldAttributeText = attributeText;
     }
-    CTFrameRef kframeRef = [self framesetterRefWithAttString:attributeText];
-    objc_setAssociatedObject(self, "frameRef", (__bridge id _Nullable)(kframeRef), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    CTFrameRef foldFrameRef = [self framesetterRefWithAttString:attributeText size:CGSizeMake(width, self.bounds.size.height)];
+    self.model.foldframe = foldFrameRef;
+    
+    CTFrameRef packUpframe = [self framesetterRefWithAttString:self.model.dy_attributedText size:CGSizeMake(width, self.model.textHeight)];
+    self.model.packUpframe = packUpframe;
+    
+    CFArrayRef packUpLines = CTFrameGetLines(packUpframe);
+    if (!packUpLines || CFArrayGetCount(packUpLines) == 0) return;
+    self.model.lineCount = CFArrayGetCount(packUpLines);
+    
     if(frameRef) {
         CFRelease(frameRef);
     }
+    [self layoutIfNeeded];
 }
 
 - (void)foldLabel:(BOOL)folded {
-    self.isFolded = folded;
     if (folded) {
-        self.attributedText = self.dy_attributedText;
         self.numberOfLines = 0;
+        self.attributedText = self.model.dy_attributedText;
     } else {
-        NSAttributedString *att = objc_getAssociatedObject(self, "foldAttributeText");
-        self.attributedText = att;
+        self.numberOfLines = self.model.numberOfLines;
+        self.attributedText = self.model.foldAttributeText;
     }
     [self layoutIfNeeded];
 }
 
 #pragma mark - Private
-- (CTFrameRef)framesetterRefWithAttString:(NSMutableAttributedString *)attString {
+- (CTFrameRef)framesetterRefWithAttString:(NSAttributedString *)attString size:(CGSize)size{
     //创建frameSetter
     CTFramesetterRef frameSetter = CTFramesetterCreateWithAttributedString((CFAttributedStringRef)attString);
     CGMutablePathRef path = CGPathCreateMutable();
     
     //指定每行的宽度,计算共多少行
-    CGPathAddRect(path, NULL, CGRectMake(0, 0, self.bounds.size.width, self.bounds.size.height));
+    CGPathAddRect(path, NULL, CGRectMake(0, 0, size.width, size.height));
     CTFrameRef frameRef = CTFramesetterCreateFrame(frameSetter, CFRangeMake(0, 0), path, NULL);
     if(frameSetter) {
         CFRelease(frameSetter);
@@ -102,38 +118,35 @@ static NSString *kDisplay = @"KisDisplay";
     return frameRef;
 }
 
-
 //因为替换文字大小问题，需要计算第几行结束
 - (NSInteger)lineReplaceWithLine:(CFIndex)lineCount lines:(CFArrayRef)lines fontDiff:(CGFloat)fontDiff {
     //计算单行高度
     CGFloat ascent = 0,descent = 0,leading = 0;
     CTLineRef line = CFArrayGetValueAtIndex(lines, 0);
     CTLineGetTypographicBounds(line, &ascent, &descent, &leading);
-    CGFloat lineHeight = ascent + descent + leading;
+    CGFloat lineHeight = ascent + fabs(descent) + leading;
     
     NSInteger lineIndex = 0,index = 0;
     NSInteger number = self.numberOfLines - 1;
     CGFloat totalLineHeight = 0;
-    while (totalLineHeight < (lineHeight + fontDiff) && lineCount > index) {
-        if (totalLineHeight < (lineHeight + leading)) {
-            index++;
-        }
+    while (totalLineHeight < (lineHeight + fontDiff) && lineCount > index ) {
+        index++;
         totalLineHeight = lineHeight * index;
     }
     lineIndex = lineCount - index;//这里需要+1，因为最后一行没计算在内，又因为数组最后一个元素索引=count-1,所以+1抵消
-    lineIndex = (self.numberOfLines > 0) ? MIN(lineIndex, number) : lineCount;
+    lineIndex = (self.numberOfLines > 0) ? MIN(lineIndex, number) : lineCount - 1;
     return lineIndex;
 }
 
 //计算被替换文字长度
 - (NSInteger)subLenthWithString:(NSMutableAttributedString *)string lineRange:(NSRange)range text:(NSString *)text textFont:(UIFont *)font{
     //折叠按钮文字宽度
-    CGFloat foldWidth = [self dy_sizeForText:text Font:font size:CGSizeMake(self.bounds.size.width, CGFLOAT_MAX) mode:0].width;
+    CGFloat foldWidth = [DYFoldLabel dy_sizeForText:text Font:font size:CGSizeMake(self.bounds.size.width, CGFLOAT_MAX) mode:0].width;
     CGFloat spaceTextWidth = 0.0;
     NSInteger index = 0;
     while (spaceTextWidth < foldWidth) {
         NSString *spaceText = [string attributedSubstringFromRange:NSMakeRange(range.location + range.length - index, index)].string;
-        spaceTextWidth = [self dy_sizeForText:spaceText Font:self.font size:CGSizeMake(self.bounds.size.width, CGFLOAT_MAX) mode:0].width;
+        spaceTextWidth = [DYFoldLabel dy_sizeForText:spaceText Font:self.font size:CGSizeMake(self.bounds.size.width, CGFLOAT_MAX) mode:0].width;
         index++;
     }
     return index;
@@ -142,30 +155,32 @@ static NSString *kDisplay = @"KisDisplay";
 #pragma mark - touch
 -(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event{
     DYFoldBtnClickBlock clickBlock = objc_getAssociatedObject(self, "clickBlock");
-    if (!clickBlock || self.isFolded) return;
+    if (!clickBlock) return;
     UITouch *touch = [touches anyObject];
     CGPoint location = [touch locationInView:self];
     CGPoint clickPoint = CGPointMake(location.x, self.bounds.size.height - location.y);
-    CTFrameRef _frame = (__bridge CTFrameRef)(objc_getAssociatedObject(self, "frameRef"));
-    
-    //获取最后行
-    CFIndex endLineIndex = [objc_getAssociatedObject(self, "endLineIndex") integerValue];
-    CFArrayRef lines = CTFrameGetLines(_frame);
-    CTLineRef line = CFArrayGetValueAtIndex(lines, endLineIndex);
-    CFRange lineRange = CTLineGetStringRange(line);
-    NSRange trimRange = NSMakeRange(0, lineRange.location + lineRange.length);
-    if (trimRange.length == self.dy_text.length) {
-        return;
+    CTFrameRef _frame;
+    CFIndex endLineIndex;
+    UIFont *font;
+    if (self.model.isFolded) {
+        _frame = self.model.packUpframe;
+        endLineIndex = self.model.lineCount - 1;
+        font = self.model.packUpTextFont;
+    } else {
+        _frame = self.model.foldframe;
+        endLineIndex = self.model.endLineIndex;
+        font = self.model.foldFont;
     }
+    //获取最后行
     
+    CFArrayRef lines = CTFrameGetLines(_frame);
+    if (!lines || CFArrayGetCount(lines) == 0) return;
     //获取行上行、下行、间距
-    CGFloat ascent = 0;
-    CGFloat descent = 0;
-    CGFloat leading = 0;
+    CGFloat ascent = 0,descent = 0,leading = 0;
     CTLineRef endLine = CFArrayGetValueAtIndex(lines, endLineIndex);
     CTLineGetTypographicBounds(endLine, &ascent, &descent, &leading);
     
-    UIFont *font = objc_getAssociatedObject(self, "foldFont");
+    
     CGFloat endLineHeight = leading + MAX(font.pointSize, self.font.pointSize);
     //计算点击位置是否在折叠行内
     CGPoint origins[CFArrayGetCount(lines)];
@@ -173,20 +188,28 @@ static NSString *kDisplay = @"KisDisplay";
     CGPoint endLineOrigin = origins[endLineIndex];
     
     CGFloat textHeight = self.bounds.size.height - endLineOrigin.y + endLineHeight;
-    if (clickPoint.y <= (self.bounds.size.height * 0.5 - textHeight * 0.5 + endLineHeight) && clickPoint.y >= (self.bounds.size.height * 0.5 - textHeight * 0.5 )) {
+    if (clickPoint.y <= (self.bounds.size.height * 0.5 - textHeight * 0.5 + endLineHeight + 5) && clickPoint.y >= (self.bounds.size.height * 0.5 - textHeight * 0.5 )) {
         CFIndex index = CTLineGetStringIndexForPosition(endLine, clickPoint);
-        NSString *foldText = objc_getAssociatedObject(self, "foldText");
-        NSRange range = NSMakeRange(self.text.length - foldText.length, foldText.length);
+        NSString *foldText = self.model.foldText;
+        NSInteger offset = self.text.length > 2 ? 2 : 0;
+        NSRange range = NSMakeRange(self.text.length - foldText.length - offset, foldText.length + offset);
+        
         //判断点击的字符是否在需要处理点击事件的字符串范围内
         if (range.location <= index) {
+            self.model.isFolded = !self.model.isFolded;
+            [self foldLabel:self.model.isFolded];
             if (clickBlock) {
-                clickBlock();
+                if (self.model.isFolded) {
+                    clickBlock(self.model.isFolded,self.model.indexPath,self.model.textHeight);
+                } else {
+                    clickBlock(self.model.isFolded,self.model.indexPath,self.model.foldHeight);
+                }
             }
         }
     }
 }
 
-- (CGSize)dy_sizeForText:(NSString *)text Font:(UIFont *)font size:(CGSize)size mode:(NSLineBreakMode)lineBreakMode {
++ (CGSize)dy_sizeForText:(NSString *)text Font:(UIFont *)font size:(CGSize)size mode:(NSLineBreakMode)lineBreakMode {
     CGSize result;
     if (!font) font = [UIFont systemFontOfSize:12];
     if ([self respondsToSelector:@selector(boundingRectWithSize:options:attributes:context:)]) {
@@ -212,31 +235,11 @@ static NSString *kDisplay = @"KisDisplay";
 
 #pragma mark - property
 
-- (void)setDy_text:(NSString *)dy_text {
-    objc_setAssociatedObject(self, &completeText, dy_text, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-}
-
-- (NSString *)dy_text {
-    return [self dy_attributedText].string;
-}
-
-- (void)setDy_attributedText:(NSAttributedString *)dy_attributedText {
-    objc_setAssociatedObject(self, &completeAttText, dy_attributedText, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    [self setDy_text:dy_attributedText.string];
-}
-
-- (NSAttributedString *)dy_attributedText {
-    NSAttributedString *att = objc_getAssociatedObject(self, &completeAttText);
-    return att;
-}
-
-- (BOOL)isFolded {
-    NSNumber *isFolded = objc_getAssociatedObject(self, &kDisplay);
-    return isFolded.boolValue;
-}
-
-- (void)setIsFolded:(BOOL)isFolded {
-    objc_setAssociatedObject(self, &kDisplay, @(isFolded), OBJC_ASSOCIATION_ASSIGN);
+- (DYLabelModel *)model {
+    if (!_model) {
+        _model = [[DYLabelModel alloc] init];
+    }
+    return _model;
 }
 
 @end
