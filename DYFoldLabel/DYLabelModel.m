@@ -15,7 +15,6 @@
     if (_textHeight == 0) {
         if (_dy_text.length == 0) return 0;
         _textHeight = [DYFoldLabel dy_sizeForText:_dy_text Font:_textFont size:CGSizeMake(_labelSize.width, CGFLOAT_MAX) mode:0].height + _textFont.pointSize;
-        [self identifier];
     }
     return _textHeight;
 }
@@ -29,13 +28,6 @@
         }
     }
     return _foldHeight;
-}
-
-- (NSString *)identifier {
-    if (!_identifier || _identifier.length == 0) {
-        return [NSString stringWithFormat:@"%@%@",@([[NSDate date] timeIntervalSince1970]),@(arc4random())];
-    }
-    return _identifier;
 }
 
 @end

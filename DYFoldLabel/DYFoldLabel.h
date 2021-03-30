@@ -39,8 +39,6 @@ typedef void (^DYFoldBtnClickBlock)(BOOL isFolded,NSIndexPath *path,CGFloat curr
 
 @property (nonatomic, strong) DYLabelModel *model;
 
-
-
 /**
  设置是否展开label。
  */

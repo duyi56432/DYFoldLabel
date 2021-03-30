@@ -13,36 +13,74 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @interface DYLabelModel : NSObject
-@property (nonatomic, assign) NSInteger numberOfLines;
-/**
- label.text因为添加折叠文字被裁剪,重新保存完整的text、attributedText,
- */
-@property (nonatomic, strong) NSString *dy_text;
-@property (nonatomic, strong) NSAttributedString *dy_attributedText;
 
 /**
- 在tableview中记录indexpath，方便回调数据处理
+ 在tableview中记录indexpath，方便回调数据处理。
  */
 @property (nonatomic, strong) NSIndexPath *indexPath;
 
+/**
+ 折叠文字、颜色、字体设置。
+ */
 @property (nonatomic, strong) NSString *foldText;
 @property (nonatomic, strong) UIColor *foldTextColor;
 @property (nonatomic, strong) UIFont *foldFont;
-@property (nonatomic, strong) NSAttributedString *foldAttributeText;
-@property (nonatomic, assign) CTFrameRef foldframe;
-@property (nonatomic, assign) NSInteger endLineIndex;
 
+/**
+ 展开文字、颜色、字体设置。
+ */
 @property (nonatomic, strong) NSString *packUpText;
 @property (nonatomic, strong) UIColor *packUpTextColor;
 @property (nonatomic, strong) UIFont *packUpTextFont;
-//@property (nonatomic, strong) NSAttributedString *packUpAttributeText;
+
+//========================以上为需要设置参数================================
+
+/**
+ label.text因为添加折叠文字被裁剪,重新保存完整的text、attributedText。
+ */
+@property (nonatomic, strong) NSString *dy_text;
+@property (nonatomic, strong) NSAttributedString *dy_attributedText;
+@property (nonatomic, strong) NSAttributedString *foldAttributeText;
+
+/**
+ 绘制区域。
+ */
+@property (nonatomic, assign) CTFrameRef foldframe;
 @property (nonatomic, assign) CTFrameRef packUpframe;
+
+/**
+ label的numberOfLines。
+ */
+@property (nonatomic, assign) NSInteger numberOfLines;
+
+/**
+ 折叠后最后一行的index。
+ */
+@property (nonatomic, assign) NSInteger endLineIndex;
+
+/**
+ 展开后总行数。
+ */
 @property (nonatomic, assign) NSInteger lineCount;
 
+/**
+ label内容文字字体。
+ */
 @property (nonatomic, strong) UIFont *textFont;
+
+/**
+ label的size。
+ */
 @property (nonatomic, assign) CGSize labelSize;
 
+/**
+ 折叠后的文字高度。
+ */
 @property (nonatomic, assign) CGFloat foldHeight;
+
+/**
+ 展开后的文字高度。
+ */
 @property (nonatomic, assign) CGFloat textHeight;
 
 /**
@@ -50,7 +88,6 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @property (nonatomic, assign) BOOL isFolded;
 
-@property (nonatomic, strong) NSString *identifier;
 @end
 
 NS_ASSUME_NONNULL_END

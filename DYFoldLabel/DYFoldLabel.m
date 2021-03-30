@@ -14,7 +14,7 @@
 static NSString *kDisplay = @"KisDisplay";
 
 @interface DYFoldLabel ()
-
+@property (nonatomic, copy) DYFoldBtnClickBlock clickBlock;
 @end
 
 @implementation DYFoldLabel
@@ -25,6 +25,7 @@ static NSString *kDisplay = @"KisDisplay";
     [self layoutIfNeeded];
     self.userInteractionEnabled = YES;
     if (!text || text.length == 0) {
+        self.text = text;
         return;
     }
     
@@ -34,6 +35,7 @@ static NSString *kDisplay = @"KisDisplay";
     }
     
     self.text = text;
+    [self layoutIfNeeded];
     NSMutableAttributedString *attributeText = [[NSMutableAttributedString alloc] initWithString:self.text attributes:@{NSFontAttributeName:self.font}];
     if (self.model.packUpText) {
         NSAttributedString *packUpText = [[NSAttributedString alloc] initWithString:self.model.packUpText attributes:@{NSFontAttributeName:self.model.packUpTextFont,NSForegroundColorAttributeName:self.model.packUpTextColor}];
@@ -46,7 +48,7 @@ static NSString *kDisplay = @"KisDisplay";
     self.model.textFont = self.font;
     self.model.numberOfLines = self.numberOfLines;
     self.model.labelSize = CGSizeMake(width, self.bounds.size.height);
-    objc_setAssociatedObject(self, "clickBlock", block, OBJC_ASSOCIATION_COPY_NONATOMIC);
+    self.clickBlock = [block copy];
 
     NSAttributedString *foldAttText = [[NSAttributedString alloc] initWithString:self.model.foldText attributes:@{NSFontAttributeName:self.model.foldFont,NSForegroundColorAttributeName:self.model.foldTextColor}];
     
@@ -64,13 +66,18 @@ static NSString *kDisplay = @"KisDisplay";
     if (trimRange.length < self.text.length) {
         //获取当前能显示文字
         attributeText = [[attributeText attributedSubstringFromRange:trimRange] mutableCopy];
-        //获取需要替换的文字长度
-        NSInteger length = [self subLenthWithString:attributeText lineRange:trimRange text:[NSString stringWithFormat:@"… %@",self.model.foldText] textFont:self.model.foldFont];
-        //省略号前需要添加的文字
-        attributeText = [[attributeText attributedSubstringFromRange:NSMakeRange(0, lineRange.location + lineRange.length - length)] mutableCopy];
-        
-        [attributeText appendAttributedString:[[NSAttributedString alloc] initWithString:@"… "]];
-        [attributeText appendAttributedString:foldAttText];
+        if ([attributeText.string hasSuffix:@"\n\n"]) {
+            attributeText = [[attributeText attributedSubstringFromRange:NSMakeRange(0, lineRange.location + lineRange.length - 1)] mutableCopy];
+            [attributeText appendAttributedString:[[NSAttributedString alloc] initWithString:@"… "]];
+            [attributeText appendAttributedString:foldAttText];
+        } else {
+            //获取需要替换的文字长度
+            NSInteger length = [self subLenthWithString:attributeText lineRange:trimRange text:[NSString stringWithFormat:@"… %@",self.model.foldText] textFont:self.model.foldFont];
+            //省略号前需要添加的文字
+            attributeText = [[attributeText attributedSubstringFromRange:NSMakeRange(0, lineRange.location + lineRange.length - length)] mutableCopy];
+            [attributeText appendAttributedString:[[NSAttributedString alloc] initWithString:@"… "]];
+            [attributeText appendAttributedString:foldAttText];
+        }
         
         self.attributedText = attributeText;
         self.model.foldAttributeText = attributeText;
@@ -141,12 +148,12 @@ static NSString *kDisplay = @"KisDisplay";
 //计算被替换文字长度
 - (NSInteger)subLenthWithString:(NSMutableAttributedString *)string lineRange:(NSRange)range text:(NSString *)text textFont:(UIFont *)font{
     //折叠按钮文字宽度
-    CGFloat foldWidth = [DYFoldLabel dy_sizeForText:text Font:font size:CGSizeMake(self.bounds.size.width, CGFLOAT_MAX) mode:0].width;
+    CGFloat foldWidth = [DYFoldLabel dy_sizeForText:text Font:font size:CGSizeMake(self.model.labelSize.width, CGFLOAT_MAX) mode:0].width;
     CGFloat spaceTextWidth = 0.0;
     NSInteger index = 0;
     while (spaceTextWidth < foldWidth) {
         NSString *spaceText = [string attributedSubstringFromRange:NSMakeRange(range.location + range.length - index, index)].string;
-        spaceTextWidth = [DYFoldLabel dy_sizeForText:spaceText Font:self.font size:CGSizeMake(self.bounds.size.width, CGFLOAT_MAX) mode:0].width;
+        spaceTextWidth = [DYFoldLabel dy_sizeForText:spaceText Font:self.font size:CGSizeMake(self.model.labelSize.width, CGFLOAT_MAX) mode:0].width;
         index++;
     }
     return index;
@@ -154,8 +161,8 @@ static NSString *kDisplay = @"KisDisplay";
 
 #pragma mark - touch
 -(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event{
-    DYFoldBtnClickBlock clickBlock = objc_getAssociatedObject(self, "clickBlock");
-    if (!clickBlock) return;
+ 
+    if (!self.clickBlock) return;
     UITouch *touch = [touches anyObject];
     CGPoint location = [touch locationInView:self];
     CGPoint clickPoint = CGPointMake(location.x, self.bounds.size.height - location.y);
@@ -198,11 +205,11 @@ static NSString *kDisplay = @"KisDisplay";
         if (range.location <= index) {
             self.model.isFolded = !self.model.isFolded;
             [self foldLabel:self.model.isFolded];
-            if (clickBlock) {
+            if (self.clickBlock) {
                 if (self.model.isFolded) {
-                    clickBlock(self.model.isFolded,self.model.indexPath,self.model.textHeight);
+                    self.clickBlock(self.model.isFolded,self.model.indexPath,self.model.textHeight);
                 } else {
-                    clickBlock(self.model.isFolded,self.model.indexPath,self.model.foldHeight);
+                    self.clickBlock(self.model.isFolded,self.model.indexPath,self.model.foldHeight);
                 }
             }
         }
